@@ -1,0 +1,9 @@
+<div *ngIf="!isNeedAuth">
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+    <input formControlName="username" placeholder="Username" required/>
+    <input formControlName="password" placeholder="Password" required/>
+    <button type="submit" [disabled]="!userForm.valid">login</button>
+  </form>
+</div>
+
+<button *ngIf="isNeedAuth" (click)="onRefresh()" >Refresh</button>
