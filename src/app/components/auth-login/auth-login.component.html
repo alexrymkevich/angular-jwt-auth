@@ -1,4 +1,4 @@
-<div *ngIf="!isNeedAuth">
+<div *ngIf="!authService.isAuthorized">
   <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
     <input formControlName="username" placeholder="Username" required/>
     <input formControlName="password" placeholder="Password" required/>
@@ -6,4 +6,5 @@
   </form>
 </div>
 
-<button *ngIf="isNeedAuth" (click)="onRefresh()" >Refresh</button>
+<button *ngIf="authService.isAuthorized && !authService.isRefreshInProgress" (click)="refresh()" >Refresh</button>
+<button *ngIf="authService.isAuthorized && !authService.isRefreshInProgress" (click)="logout()" >Logout</button>

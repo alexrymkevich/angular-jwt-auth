@@ -1,8 +1,9 @@
 import {Injectable} from '@angular/core';
 import * as io from 'socket.io-client';
 import {Observable, Subject} from 'rxjs';
-import {WEBSCOKET_URL} from '../constants/API';
-import {AuthService} from './auth.service';
+import {WEBSOCKET_URL} from '../constants/API';
+import {LocalStorageService} from './local-storage.service';
+import {StorageKeys} from '../constants/storage-keys';
 
 @Injectable({
   providedIn: 'root'
@@ -10,45 +11,75 @@ import {AuthService} from './auth.service';
 
 export class WebsocketService {
 
-  // Our socket connection
-  private socket;
+  private socket: any = null;
+  public socket$: Subject<any> = new Subject<any>();
 
   constructor(
-    private authService: AuthService,
+    private localStorage: LocalStorageService,
   ) {
   }
 
-  connect(): Subject<MessageEvent> {
-    // If you aren't familiar with environment variables then
-    // you can hard code `environment.ws_url` as `http://localhost:5000`
-    this.socket = io(WEBSCOKET_URL, { query: `auth_token=${this.authService.getToken()}` });
-
-    // We define our observable which will observe any incoming messages
-    // from our socket.io server.
-    const observable = new Observable(observer => {
-      this.socket.on('data', (data) => {
-        observer.next(data);
-      });
-      this.socket.on('info', (data) => {
-        observer.next(data);
-      });
-      return () => {
-        this.socket.disconnect();
-      };
+  public emit(chanel, message) {
+    return new Observable<any>(observer => {
+      if (this.socket) {
+        console.log(`emit to ${chanel}:`, message);
+        this.socket.emit(chanel, message, function (data) {
+          if (data.success) {
+            observer.next(data.msg);
+          } else {
+            observer.error(data.msg);
+          }
+          observer.complete();
+        });
+      }
     });
-
-    // We define our Observer which will listen to messages
-    // from our other components and send messages back to our
-    // socket server whenever the `next()` method is called.
-    const observer = {
-      next: (data: Object) => {
-        this.socket.emit('command', JSON.stringify(data));
-      },
-    };
-
-    // we return our Rx.Subject which is a combination
-    // of both an observer and observable.
-    return Subject.create(observer, observable);
   }
 
+  public on(event_name) {
+    return new Observable<any>(observer => {
+      console.log(`listen to ${event_name}:`);
+      // this.socket.off(event_name);
+      this.socket.on(event_name, (data) => {
+        observer.next(data);
+      });
+    });
+  }
+
+  public connect() {
+    if (!this.socket) {
+      const token = this.localStorage.get(StorageKeys.AuthToken) || null;
+      if (token) {
+        this.socket = io(WEBSOCKET_URL, {query: `auth_token=${token}`});
+        this.socket.on('connect', () => this.connected());
+        this.socket.on('disconnect', () => this.disconnected());
+        this.socket.on('error', (error: string) => {
+          console.log(`ERROR: "${error}" (${WEBSOCKET_URL})`);
+        });
+      }
+    } else {
+      this.socket.connect();
+    }
+  }
+
+  public close() {
+    this.socket.disconnect();
+    this.socket = null;
+  }
+
+  public refreshConnection() {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+    this.connect();
+  }
+
+  private connected() {
+    this.socket$.next(true);
+    console.log('Connected');
+  }
+
+  private disconnected() {
+    console.log('Disconnected');
+  }
 }

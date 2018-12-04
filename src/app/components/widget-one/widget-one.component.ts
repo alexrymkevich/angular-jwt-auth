@@ -12,9 +12,7 @@ export class WidgetOneComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.widgetOneWsService.data.subscribe(data => {
-      console.log(data);
-    });
+
   }
 
 }

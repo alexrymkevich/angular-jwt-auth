@@ -1,9 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 
-import {User} from './User';
 import {AuthService} from '../../services/auth.service';
-import {LocalStorageService} from '../../services/local-storage.service';
-import {StorageKeys} from '../../constants/storage-keys';
 import {FormGroup, FormControl} from '@angular/forms';
 
 @Component({
@@ -17,19 +14,14 @@ export class AuthLoginComponent implements OnInit {
     password: new FormControl('alexpass'),
   });
 
-  private isNeedAuth: Boolean = true;
-  private isExpired: Boolean;
+  private isAuthorized: Boolean = false;
 
   constructor(
     private authService: AuthService,
-    private localStorage: LocalStorageService,
   ) {
   }
 
   ngOnInit() {
-    this.isNeedAuth = !!this.localStorage.get(StorageKeys.AuthToken);
-    this.isExpired = (+new Date() - +(new Date(this.localStorage.get(StorageKeys.ExpiredToken))) > 0)
-      && !this.localStorage.get(StorageKeys.RefreshToken);
   }
 
   onSubmit(): void {
@@ -39,14 +31,19 @@ export class AuthLoginComponent implements OnInit {
     }
     this.authService.login(username, password)
       .subscribe(data => {
-        console.log(data, 'Login is correct');
-        this.isNeedAuth = !!this.localStorage.get(StorageKeys.AuthToken);
+        console.log('Login is correct', data);
       });
   }
-  onRefresh(): void {
+  refresh(): void {
     this.authService.refreshToken()
+      .subscribe(() => {
+      });
+  }
+
+  logout(): void {
+    this.authService.logout()
       .subscribe(data => {
-        this.isNeedAuth = !!this.localStorage.get(StorageKeys.AuthToken);
+        console.log('logout = ', data);
       });
   }
 

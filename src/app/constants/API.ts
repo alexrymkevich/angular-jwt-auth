@@ -5,4 +5,4 @@ export const API = {
     refresh: `${API_URL}/auth/refreshToken`,
 };
 
-export const WEBSCOKET_URL = 'ws://localhost:3010';
+export const WEBSOCKET_URL = 'ws://localhost:3010';

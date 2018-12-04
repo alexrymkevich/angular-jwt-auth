@@ -7,12 +7,14 @@ import { AppComponent } from './app.component';
 import { AuthLoginComponent } from './components/auth-login/auth-login.component';
 import {HttpErrorInterceptor} from './interceptors/http-error.interceptor';
 import { WidgetOneComponent } from './components/widget-one/widget-one.component';
+import { WidgetTwoComponent } from './components/widget-two/widget-two.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     AuthLoginComponent,
     WidgetOneComponent,
+    WidgetTwoComponent,
   ],
   imports: [
     HttpClientModule,
